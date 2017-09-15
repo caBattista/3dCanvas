@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<body style="background-color: #999999">
+<canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;">
+	Your browser does not support the HTML5 canvas tag.
+</canvas>
+<script type="text/javascript">
+
+function initCanvas() {
+	//console.log("initialising canvas");
+	var c = document.getElementById("myCanvas");
+	var ctx = c.getContext("2d");
+	for (var x = 0; x <= 100; x++) {
+		for (var y = 0; y <= 100; y++) {
+			ctx.fillStyle = "rgb(0,0,0)";
+			ctx.fillRect(x*7,y*7,7,7);
+		}	
+	}
+	return ctx;
+}
+
+function decl3dArr() {
+	//console.log("decalring 3d array");
+	var treedee = new Array();
+	for (var x = 0; x < 500; x++) {
+		treedee[x] = new Array();
+	}
+	for (var x = 0; x < 500; x++) {
+		for (var y = 0; y < 500; y++) {
+			treedee[x][y] = new Array();
+		}
+	}
+	return treedee;
+}
+
+function init3dArr(treedee) {
+	//console.log("initialising 3d array");
+	for (var x = 0; x < 500; x++) {
+		for (var y = 0; y < 500; y++) {
+			for (var z = 0; z < 500; z++) {
+				treedee[x][y][z] = "rgba(0,0,0,0)";
+			}	
+		}	
+	}
+	return treedee;
+}
+
+function decl2dArr() {
+	//console.log("decalring 2d array");
+	var twodee = new Array();
+	for (var x = 0; x < 500; x++) {
+		twodee[x] = new Array();
+	}
+	for (var x = 0; x < 500; x++) {
+		for (var y = 0; y < 500; y++) {
+			twodee[x][y] = "rgba(0,0,0,0)";
+		}	
+	}
+	return twodee;
+}
+
+function copy3dTo2d(treedee, twodee, how, slice) {
+	if(how == "closest"){
+		//console.log("copying 3d array to 2d array (max)");
+		for (var x = 0; x < 500; x++) {
+			for (var y = 0; y < 500; y++) {
+				for (var z = 0; z < 500; z++) {
+					twodee[x][y] = treedee[x][y][z];
+					if(treedee[x][y][z]!="rgba(0,0,0,0)"){
+						z=500;
+					}			
+				}	
+			}	
+		}
+	}
+	else if(how == "slice" && slice != undefined){
+		//console.log("copying 3d array to 2d array (slice: " + slice + ")");
+		for (var x = 0; x < 500; x++) {
+			for (var y = 0; y <500; y++) {
+				twodee[x][y] = treedee[x][y][slice];
+			}	
+		}
+
+	}
+	else if(how == "compressed"){
+		//console.log("copying 3d array to 2d array (compression)");
+		for (var x = 0; x < 250; x++) {
+			for (var y = 0; y < 250; y++) {
+				for (var z = 0+slice; z < 250+slice; z++) {
+					if (treedee[x][y][z] != "rgba(0,0,0,0)" && x+z < 250 && y+z < 250) {
+						twodee[x+z][y+z] = treedee[x][y][z+slice];	
+					}				
+				}
+			}	
+		}
+		for (var x = 250; x < 500; x++) {
+			for (var y = 0; y < 250; y++) {
+				for (var z = 250+slice; z > -1+slice; z--) {
+					if (treedee[x][y][z] != "rgba(0,0,0,0)" && x-z > 249 && y+z < 250) {
+						twodee[x-z][y+z] = treedee[x][y][z+slice];	
+					}				
+				}
+			}	
+		}
+		for (var x = 0; x < 250; x++) {
+			for (var y = 499; y >= 250; y--) {
+				for (var z = 0+slice; z < 250+slice; z++) {
+					if (treedee[x][y][z] != "rgba(0,0,0,0)" && x+z <= 250 && y-z >= 250) {
+						twodee[x+z][y-z] = treedee[x][y][z+slice];	
+					}				
+				}
+			}	
+		}
+		for (var x = 250; x < 500; x++) {
+			for (var y = 499; y >= 250; y--) {
+				for (var z = 250+slice; z > -1+slice; z--) {
+					if (treedee[x][y][z] != "rgba(0,0,0,0)" && x-z >= 250 && y-z >= 250) {
+						twodee[x-z][y-z] = treedee[x][y][z+slice];	
+					}				
+				}
+			}	
+		}
+	}
+	return twodee;
+}
+
+function displ2dArr(twoodee) {
+	//console.log("displaying 2d array");
+	ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+	for (var x = 0; x < 500; x++) {
+		for (var y = 0; y < 500; y++) {
+			ctx.fillStyle = twodee[x][y];
+			ctx.fillRect(x,y,0,0);
+		}	
+	}
+}
+
+function scan3d() {
+	var count = 0;
+	var myTimer = setInterval(timer, 500);
+		
+	function timer(){ 
+
+		twodee = copy3dTo2d(treedee,twodee,"slice",count);
+		displ2dArr(twodee);
+
+		count++;
+		if (count == 100) {
+			clearInterval(myTimer);
+		}
+	}	
+}
+
+var ctx = initCanvas();
+var treedee = decl3dArr();
+treedee = init3dArr(treedee);
+var twodee = decl2dArr();
+
+
+for (var i = 1; i < 25; i++) {
+	treedee[0][0][i] = "rgb(255,0,0)";
+	treedee[0][99][i] = "rgb(255,0,0)";
+	treedee[99][0][i] = "rgb(255,0,0)";
+	treedee[99][99][i] = "rgb(255,0,0)";
+}
+for (var i = 0; i < 100; i++) {
+	treedee[0][i][0] = "rgb(0,255,0)";
+	treedee[0][i][25] = "rgb(0,255,0)";
+
+	treedee[99][i][0] = "rgb(0,255,0)";
+	treedee[99][i][25] = "rgb(0,255,0)";
+}
+for (var i = 1; i < 100; i++) {
+	treedee[i][0][0] = "rgb(0,0,255)";
+	treedee[i][99][0] = "rgb(0,0,255)";
+
+	treedee[i][0][25] = "rgb(0,0,255)";
+	treedee[i][99][25] = "rgb(0,0,255)";
+}
+/*
+	var count2 = 0;
+	var myTimer2 = setInterval(timer2, 100);
+		
+	function timer2(){ 
+		console.log(count2);
+			twodee = decl2dArr();
+			twodee = copy3dTo2d(treedee,twodee,"compressed",0);
+			displ2dArr(twodee);
+
+		count2++;
+		if (count2 == 100) {
+			clearInterval(myTimer2);
+		}
+	}	
+*/
+
+twodee = copy3dTo2d(treedee,twodee,"max");
+displ2dArr(twodee);
+
+//scan3d();
+</script>
+</body>
+</html>
